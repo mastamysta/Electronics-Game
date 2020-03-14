@@ -1,0 +1,24 @@
+#version 400
+
+in vec3 position;
+in vec2 tex_coords;
+in vec3 normal;
+
+out vec2 pass_tex_coords;
+out vec3 surfaceNormal;
+out vec3 toLightVec;
+
+uniform mat4 transformationMatrix;
+uniform mat4 projectionMatrix;
+uniform mat4 viewMatrix;
+uniform vec3 lightLocation;
+
+void main(void){
+	vec4 worldLocation = transformationMatrix * vec4(position, 1.0);
+	
+	gl_Position = projectionMatrix * viewMatrix * worldLocation;
+	pass_tex_coords = tex_coords;
+	
+	surfaceNormal = (transformationMatrix * vec4(normal, 0.0)).xyz;
+	toLightVec = lightLocation - worldLocation.xyz; 
+}

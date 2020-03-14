@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path=""/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-10">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/SLICK">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="/home/ben/Programming/Java/slick-util/lib"/>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/LWJGL2">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="/home/ben/Programming/Java/lwjgl-2.9.3/native/linux"/>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/ben/Programming/Java/lwjgl-2.9.3/jar/lwjgl.jar">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="/home/ben/Programming/Java/lwjgl-2.9.3/native/linux"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/ben/Programming/Java/slick-util/lib/slick-util.jar">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="/home/ben/Programming/Java/slick-util/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/ben/Programming/Java/lwjgl-2.9.3/jar/lwjgl_util.jar"/>
+	<classpathentry kind="output" path=""/>
+</classpath>
