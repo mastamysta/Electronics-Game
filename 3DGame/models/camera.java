@@ -1,22 +1,44 @@
 package models;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector3f;
-import org.lwjgl.util.vector.Vector4f;
 
+import Terminal.Terminal;
+import set.ICamera;
 import toolbox.Maths;
 
-public class camera {
+public class camera implements ICamera{
 	private int WIDTH;
 	private int HEIGHT;
 	private Vector3f position;
 	private float pitch, yaw, roll;
 	private static final int MARGIN = 5;
+	private Matrix4f projectionMatrix;
+	private Matrix4f viewMatrix;
+	private static float FOV = 120;
+	private static float NEARPLANEDISTANCE = (float) 0.1f;
+	private static float FARPLANEDISTANCE = 300;
+	
+	private boolean cameraLocked;
+	private boolean lKeyDown;
+	
+	private boolean terminalUp;
+	private boolean f1KeyDown;
+	private boolean f2KeyDown;
+	private List<Character> keyBoardQueue = new ArrayList<Character>();
+	
 	public void setPosition(Vector3f position) {
 		this.position = position;
+	}
+
+	public boolean isCameraLocked() {
+		return cameraLocked;
 	}
 
 	public void setPitch(float pitch) {
@@ -44,6 +66,15 @@ public class camera {
 		dY = 0;
 		WIDTH = Display.getWidth();
 		HEIGHT = Display.getHeight();
+		createProjectionMatrix();
+		
+		cameraLocked = false;
+		lKeyDown = cameraLocked;
+		Mouse.setGrabbed(!cameraLocked);
+		
+		terminalUp = false;
+		f1KeyDown = terminalUp;
+		f2KeyDown = terminalUp;
 	}
 	
 	private Vector3f getUnitDirection() {
@@ -85,6 +116,7 @@ public class camera {
 	public void updateCamera() {
 		moveCamera();
 		updateCameraAngle();
+		
 	}
 	
 	public void lookingAt(Vector3f target) {
@@ -120,27 +152,66 @@ public class camera {
 	}
 	
 	public void relativeKeyBoardNav() {
-		updateCameraAngle();
-		if (Keyboard.isKeyDown(Keyboard.KEY_W)) {
-			Vector3f.sub(position, getUnitDirection(), position);
+		if(!cameraLocked && !terminalUp) {
+			updateCameraAngle();
+				if (Keyboard.isKeyDown(Keyboard.KEY_W)) {
+				Vector3f.sub(position, getUnitDirection(), position);
+			}
+			if (Keyboard.isKeyDown(Keyboard.KEY_S)) {
+				Vector3f.add(position, getUnitDirection(), position);
+			}
+			if (Keyboard.isKeyDown(Keyboard.KEY_A)) {
+				Vector3f.add(position, getLPerpendicular(), position);
+			}
+			if (Keyboard.isKeyDown(Keyboard.KEY_D)) {	
+				Vector3f.add(position, getRPerpendicular(), position);
+			}
+			if (Keyboard.isKeyDown(Keyboard.KEY_SPACE)) {	
+				Vector3f.add(position, new Vector3f(0,1,0), position);
+			}
+			if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)) {	
+				Vector3f.sub(position, new Vector3f(0,1,0), position);
+			}
 		}
-		if (Keyboard.isKeyDown(Keyboard.KEY_S)) {
-			Vector3f.add(position, getUnitDirection(), position);
-		}
-		if (Keyboard.isKeyDown(Keyboard.KEY_A)) {
-			Vector3f.add(position, getLPerpendicular(), position);
-		}
-		if (Keyboard.isKeyDown(Keyboard.KEY_D)) {	
-			Vector3f.add(position, getRPerpendicular(), position);
-		}
-		if (Keyboard.isKeyDown(Keyboard.KEY_E)) {	
+		
+		if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) {	
 			System.exit(0);
+		}
+		
+		if (Keyboard.isKeyDown(Keyboard.KEY_L)){
+			lKeyDown = true;
+		}
+		if (Keyboard.isKeyDown(Keyboard.KEY_F1)){
+			f1KeyDown = true;
+		}
+		if (Keyboard.isKeyDown(Keyboard.KEY_F2)){
+			f2KeyDown = true;
+		}
+		
+		if (!Keyboard.isKeyDown(Keyboard.KEY_L) && lKeyDown){
+			this.cameraLocked = !this.cameraLocked;
+			Mouse.setGrabbed(!Mouse.isGrabbed());
+			lKeyDown = false;
+		}
+		if (!Keyboard.isKeyDown(Keyboard.KEY_F1) && f1KeyDown){
+			this.terminalUp = !this.terminalUp;
+			while(Keyboard.next()) {
+				
+			}
+			f1KeyDown = false;
+		}
+		if (!Keyboard.isKeyDown(Keyboard.KEY_F2) && f2KeyDown){
+			Terminal.clearTerminal();
+			f2KeyDown = false;
 		}
 	}
 	
 	
+	public List<Character> getKeyBoardQueue() {
+		return keyBoardQueue;
+	}
+
 	private void updateCameraAngle() {
-		Mouse.setGrabbed(true);
 		dX = mouseX - Mouse.getX();
 		dY = mouseY - Mouse.getY();
 		yaw -= (dX * 0.2);
@@ -164,6 +235,21 @@ public class camera {
 			Mouse.setCursorPosition((int) mouseX, (int) mouseY);
 		}
 	}
+	
+	private void createProjectionMatrix(){
+        float aspectRatio = (float) Display.getWidth() / (float) Display.getHeight();
+        float y_scale = (float) ((1f / Math.tan(Math.toRadians(FOV/2f))) * aspectRatio);
+        float x_scale = y_scale / aspectRatio;
+        float frustum_length = FARPLANEDISTANCE - NEARPLANEDISTANCE;
+        
+        projectionMatrix = new Matrix4f();
+        projectionMatrix.m00 = x_scale;
+        projectionMatrix.m11 = y_scale;
+        projectionMatrix.m22 = -((FARPLANEDISTANCE + NEARPLANEDISTANCE) / frustum_length);
+        projectionMatrix.m23 = -1;
+        projectionMatrix.m32 = -((2 * NEARPLANEDISTANCE * FARPLANEDISTANCE) / frustum_length);
+        projectionMatrix.m33 = 0;
+    }
 	
 	public void increaseCameraPosition(Vector3f movement) {
 		Vector3f.add(position, movement, position);
@@ -190,5 +276,42 @@ public class camera {
 
 	public float getRoll() {
 		return roll;
+	}
+
+	
+	public void updateViewMatrix() {
+		Matrix4f matrix = new Matrix4f();
+		matrix.setIdentity();
+		Matrix4f.rotate((float)Math.toRadians(this.getPitch()), new Vector3f(1,0,0), matrix, matrix);
+		Matrix4f.rotate((float)Math.toRadians(this.getYaw()), new Vector3f(0,1,0), matrix, matrix);
+		Matrix4f.rotate((float)Math.toRadians(this.getRoll()), new Vector3f(0,0,1), matrix, matrix);
+		Vector3f neg = new Vector3f(-this.getPosition().x, -this.getPosition().y, -this.getPosition().z);
+		Matrix4f.translate(neg, matrix, matrix);
+		viewMatrix = matrix;
+	}
+	
+	@Override
+	public Matrix4f getViewMatrix() {
+		return viewMatrix;
+	}
+
+	@Override
+	public Matrix4f getProjectionMatrix() {
+		return projectionMatrix;
+	}
+
+	@Override
+	public Matrix4f getProjectionViewMatrix() {
+		return Matrix4f.mul(projectionMatrix, viewMatrix, null);
+	}
+
+	@Override
+	public void move() {
+		relativeKeyBoardNav();
+		updateViewMatrix();
+	}
+
+	public boolean isTerminalUp() {
+		return terminalUp;
 	}
 }

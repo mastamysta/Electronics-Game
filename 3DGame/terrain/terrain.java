@@ -1,12 +1,12 @@
 package terrain;
 
+import loaders.modelLoader;
 import models.TDModel;
 import models.modelTexture;
 import models.texturedModel;
-import renderSystem.modelLoader;
 
 public class terrain {
-	private static final int SIZE = 800;
+	private static final int SIZE = 1000;
 	private static final int VERTEX_COUNT = 120;
 
 	private float x;
@@ -79,7 +79,6 @@ public class terrain {
 				indices[pointer++] = bottomRight;
 			}
 		}
-		System.out.print(vertices);
 		return loader.loadToVao(vertices, textureCoords, indices, normals);
 	}
 

@@ -3,12 +3,19 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.GL21;
+import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.GL40;
+import org.lwjgl.util.vector.Matrix2f;
 import org.lwjgl.util.vector.Matrix4f;
+import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector3f;
+
 
 public abstract class shaderProgram {
 
@@ -40,6 +47,17 @@ public abstract class shaderProgram {
 		GL20.glUniform3f(location, vector.x, vector.y, vector.z);
 	}
 	
+	protected void loadIntArray(int location, int[] array) {
+		IntBuffer intBuffer = BufferUtils.createIntBuffer(400);
+		intBuffer.put(array);
+		intBuffer.flip();
+		GL20.glUniform1(location, intBuffer);
+	}
+	
+	protected void loadVector(int location, Vector2f vector) {
+		GL20.glUniform2f(location, vector.x, vector.y);
+	}
+	
 	protected void loadBoolean(int location, Boolean bool) {
 		float abstractBool = 0;
 		if (bool) {
@@ -47,8 +65,8 @@ public abstract class shaderProgram {
 		}
 		GL20.glUniform1f(location, abstractBool);
 	}
-	
-	protected void loadMatraix(int location, Matrix4f matrix) {
+		
+	protected void loadMatrix(int location, Matrix4f matrix) {
 		matrix.store(matrixBuffer);
 		matrixBuffer.flip();
 		GL20.glUniformMatrix4(location, false, matrixBuffer);
